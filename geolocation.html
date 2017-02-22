@@ -1,0 +1,62 @@
+
+<html>
+<head><title>Geocoding</title>
+<meta name="viewport" content="width=device-width maximum-scale=1 initial-scale=1 user-scalable=no">
+<link rel="stylesheet" type="text/css" href="../../style.css"/>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&libraries=places"></script>
+</head>
+<body>
+<h2>Geocoding</h2>
+<p id="progress">Checking position</p>
+<p>Latitude: <span id="latitude"></span><br>
+Longitude: <span id="longitude"></span><br>
+Accuracy: <span id="accuracy"></span></p>
+<p>Approximate address: <span id="geocode"></span></p>
+<script>
+var progress = document.getElementById('progress'),
+    latitude = document.getElementById('latitude'),
+    longitude = document.getElementById('longitude'),
+    geocode = document.getElementById('geocode');
+
+
+if (navigator.geolocation) {
+    progress.textContent = 'Browser supports geolocation';
+    window.onload = function() {
+      progress.textContent = 'Checking coordinates';
+        navigator.geolocation.watchPosition(function (position) {
+
+            progress.textContent = 'Found coordinates';
+            var coords = position.coords;
+            latitude.textContent = coords.latitude.toFixed(2);
+            longitude.textContent = coords.longitude.toFixed(2);
+            accuracy.textContent = (coords.accuracy/1000).toFixed(1) + ' km';
+
+            progress.textContent = 'Reverse geocoding';
+            var geocoder = new google.maps.Geocoder();
+            var pos = new google.maps.LatLng(coords.latitude, coords.longitude);
+
+            geocoder.geocode({'latLng': pos}, function (results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results.length && results[0].formatted_address) {
+                        geocode.textContent = results[0].formatted_address;
+                    }
+                } else {
+                    geocode.textContent = 'unavailable (' + status + ')';
+                }
+            });
+        }, function (error) {
+            alert('Error ' + error)
+            progress.textContent = 'Error: ' + error.toMessage();
+        }, {
+            enableHighAccuracy: true,
+            timeout: 30 * 1000,        // 30 secs
+            maximumAge: 5 * 60 * 1000, // 5 mins
+        });
+    };
+} else {
+    progress.textContent = 'Sorry! Your browser does not support geolocation.';
+}
+</script>
+</body>
+</html>
